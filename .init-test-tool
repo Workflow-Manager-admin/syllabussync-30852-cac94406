@@ -1,0 +1,4 @@
+{
+    "command": "npm run test",
+    "working_directory": "/home/kavia/workspace/code-generation/syllabussync-30852-cac94406/syllabus_sync"
+}
