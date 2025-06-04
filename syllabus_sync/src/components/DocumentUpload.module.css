@@ -1,0 +1,38 @@
+.upload-box {
+  background: #f8fcfa;
+  border: 2.4px dashed var(--secondary);
+  border-radius: 11px;
+  padding: 28px 24px 24px 24px;
+  text-align: center;
+  margin-bottom: 12px;
+  position: relative;
+}
+.upload-title {
+  font-weight: 700;
+  font-size: 1.15rem;
+  margin-bottom: 13px;
+  color: var(--primary);
+}
+.upload-status {
+  font-size: 15px;
+  min-height: 24px;
+  color: var(--text-secondary);
+}
+.upload-feedback {
+  margin-top: 12px;
+  min-height: 20px;
+  font-weight: 600;
+}
+.upload-feedback.success {
+  color: var(--secondary);
+}
+.upload-feedback.error {
+  color: #ff5d52;
+}
+.upload-meta {
+  color: #92a2b3;
+  font-size: 12px;
+  margin-top: 4px;
+  min-height: 12px;
+}
+>>>>>>> REPLACE

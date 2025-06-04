@@ -1,0 +1,19 @@
+.results-tabs {
+  margin: 0;
+  width: 100%;
+}
+.recommendations-section {
+  margin-top: 20px;
+}
+.recommendation-feedback {
+  color: var(--text-secondary);
+  font-size: 1.02rem;
+  text-align: center;
+  padding: 22px 0;
+}
+.recommendation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+>>>>>>> REPLACE
