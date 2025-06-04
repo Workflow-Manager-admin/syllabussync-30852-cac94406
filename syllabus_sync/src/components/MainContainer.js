@@ -4,36 +4,11 @@ import ResultsTabs from "./ResultsTabs";
 import Dashboard from "./Dashboard";
 
 /**
- * Mocks an AI/NLP parser for uploaded syllabus documents.
- * Returns a promise simulating an asynchronous API call.
- * @param {File} file - The uploaded syllabus file
- * @returns {Promise<{subjects: string[], modules: string[], keywords: string[]}>}
- */
-// PUBLIC_INTERFACE
-function mockContentParserAPI(file) {
-  // Simulated parsing using filename, for demo/mock purposes (normally contents would be analyzed)
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        subjects: [
-          "Artificial Intelligence",
-          "Data Structures",
-          "Web Development"
-        ],
-        modules: ["Module 1", "Module 2"],
-        keywords: ["AI", "React", "Node.js"],
-      });
-    }, 1000);
-  });
-}
-
-/**
  * Main app container for SyllabusSync UI.
- * Orchestrates document upload, content parsing, recommendations, and dashboard.
+ * Handles file upload, calls backend APIs, and manages UI state.
  */
 // PUBLIC_INTERFACE
 function MainContainer() {
-  // State management for uploaded document, parsed content, recommendations, and saved items
   const [uploadedDoc, setUploadedDoc] = useState(null);
   const [parsedResults, setParsedResults] = useState(null);
   const [recommendations, setRecommendations] = useState({
@@ -43,77 +18,108 @@ function MainContainer() {
   });
   const [savedItems, setSavedItems] = useState([]);
   const [viewDashboard, setViewDashboard] = useState(false);
+
+  // Loading and error state for parsing/generation
   const [parsing, setParsing] = useState(false);
   const [parseError, setParseError] = useState("");
+  const [recommendationLoading, setRecommendationLoading] = useState(false);
+  const [recommendationError, setRecommendationError] = useState("");
 
-  // Handler for document upload: call the content parser and set results
+  /**
+   * Handler for document upload action:
+   * - Uploads file via POST /api/parse-syllabus
+   * - Then POSTs subjects/modules/keywords to /api/generate-recommendations
+   * - Updates UI accordingly
+   * - Includes loading and error states
+   * @param {File} doc 
+   */
   // PUBLIC_INTERFACE
   const handleDocUpload = async (doc) => {
     setUploadedDoc(doc);
     setParsing(true);
     setParseError("");
     setParsedResults(null);
+    setRecommendations({ internships: [], certifications: [], projects: [] });
+    setRecommendationError("");
+    setRecommendationLoading(false);
 
+    // Step 1: POST file to /api/parse-syllabus
     try {
-      // Pretend to send to AI parser API and get parsed results.
-      const parsed = await mockContentParserAPI(doc);
+      const formData = new FormData();
+      formData.append("file", doc);
 
-      setParsedResults(parsed);
-
-      // Simulate recommendations using the parsed data as reference, now each has a "link"
-      setRecommendations({
-        internships: [
-          {
-            title: "AI Research Intern",
-            description: "Work with a university lab on NLP tasks.",
-            link: "https://example.com/internship/ai-research"
-          },
-          {
-            title: "Web Development Intern",
-            description: "Contribute to React-based web apps.",
-            link: "https://example.com/internship/web-development"
-          },
-        ],
-        certifications: [
-          {
-            title: "AWS Certified Cloud Practitioner",
-            description: "Verify your cloud fundamentals knowledge.",
-            link: "https://aws.amazon.com/certification/certified-cloud-practitioner/"
-          },
-          {
-            title: "Google Data Analytics",
-            description: "Gain hands-on data analysis skills.",
-            link: "https://www.coursera.org/professional-certificates/google-data-analytics"
-          },
-        ],
-        projects: [
-          {
-            title: "Personal Portfolio Website",
-            description: "Showcase your skills with a modern web portfolio.",
-            link: "https://github.com/topics/portfolio-website"
-          },
-          {
-            title: "Chatbot for Student Queries",
-            description: "Build an AI bot for campus FAQs.",
-            link: "https://github.com/topics/chatbot"
-          },
-        ],
+      // Assume backend API exists at /api/parse-syllabus, returns JSON with {subjects, modules, keywords}
+      const parseRes = await fetch("/api/parse-syllabus", {
+        method: "POST",
+        body: formData
       });
-      setViewDashboard(false);
-    } catch (err) {
-      setParseError("Failed to parse the syllabus. Please try again.");
-    } finally {
+
+      if (!parseRes.ok) {
+        throw new Error("Syllabus parsing failed. Please upload a valid document.");
+      }
+      const parseData = await parseRes.json();
+
+      // Defensive: ensure required structure
+      if (
+        !parseData ||
+        !Array.isArray(parseData.subjects) ||
+        !Array.isArray(parseData.modules) ||
+        !Array.isArray(parseData.keywords)
+      ) {
+        throw new Error("Server returned invalid structure. Please try another file.");
+      }
+
+      setParsedResults({
+        subjects: parseData.subjects,
+        modules: parseData.modules,
+        keywords: parseData.keywords,
+      });
       setParsing(false);
+
+      // Step 2: POST parsed content to /api/generate-recommendations
+      setRecommendationLoading(true);
+      setRecommendationError("");
+      const recRes = await fetch("/api/generate-recommendations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subjects: parseData.subjects,
+          modules: parseData.modules,
+          keywords: parseData.keywords,
+        }),
+      });
+
+      if (!recRes.ok) {
+        throw new Error("Failed to generate recommendations from parsed content.");
+      }
+      const recData = await recRes.json();
+      // Defensive: use empty arrays as fallback for keys
+      setRecommendations({
+        internships: Array.isArray(recData.internships) ? recData.internships : [],
+        certifications: Array.isArray(recData.certifications) ? recData.certifications : [],
+        projects: Array.isArray(recData.projects) ? recData.projects : [],
+      });
+      setRecommendationLoading(false);
+      setViewDashboard(false);
+
+    } catch (err) {
+      setParsing(false);
+      setRecommendationLoading(false);
+      if (!parsedResults) {
+        setParseError(err.message || "Failed to parse the syllabus. Please try again.");
+      } else {
+        setRecommendationError(err.message || "Failed to generate recommendations. Please try again.");
+      }
     }
   };
 
-  // Handler to save recommendations
+  // Handler to save a recommendation to user's dashboard
   // PUBLIC_INTERFACE
   const handleSaveItem = (item) => {
     setSavedItems((prev) => [...prev, item]);
   };
 
-  // Toggle between recommendations view and dashboard
+  // Toggles between recommendations view and the dashboard
   // PUBLIC_INTERFACE
   const handleDashboardToggle = () => {
     setViewDashboard((prev) => !prev);
@@ -137,6 +143,8 @@ function MainContainer() {
               onUpload={handleDocUpload}
               uploadedDoc={uploadedDoc}
             />
+
+            {/* Loading/Progress States */}
             {parsing && (
               <div
                 style={{
@@ -151,6 +159,7 @@ function MainContainer() {
                 Parsing document with AI...
               </div>
             )}
+
             {parseError && (
               <div
                 style={{
@@ -165,6 +174,8 @@ function MainContainer() {
                 {parseError}
               </div>
             )}
+
+            {/* Show parsed results if available */}
             {parsedResults && !parsing && (
               <div style={{
                 background: "rgba(79,209,197,0.10)",
@@ -184,6 +195,37 @@ function MainContainer() {
                 <div>
                   <b>Keywords:</b> {parsedResults.keywords.join(", ")}
                 </div>
+              </div>
+            )}
+
+            {/* Loading/Errors for Recommendation Generation */}
+            {recommendationLoading && (
+              <div
+                style={{
+                  marginTop: 20,
+                  background: "rgba(246,173,85,0.14)",
+                  borderRadius: 10,
+                  padding: 14,
+                  color: "#F6AD55",
+                  fontWeight: 500,
+                }}
+              >
+                Generating personalized recommendations...
+              </div>
+            )}
+
+            {recommendationError && (
+              <div
+                style={{
+                  marginTop: 20,
+                  background: "rgba(255,70,70,0.09)",
+                  borderRadius: 10,
+                  padding: 14,
+                  color: "#ff6e6e",
+                  fontWeight: 500,
+                }}
+              >
+                {recommendationError}
               </div>
             )}
           </section>
