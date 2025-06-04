@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import Tab from "./Tab";
-import RecommendationList from "./RecommendationList";
+import RecommendationCard from "./RecommendationCard";
 
 /**
  * Tabs to show results: Internships, Certifications, Project Ideas.
- * Renders mock recommendations for each category and allows "favorite" interaction.
- * 
+ * Renders recommendations for each category with integrated favorite interaction.
+ *
  * Props:
  * - recommendations: { internships: [], certifications: [], projects: [] }
- * - onSave: function(item) => void   // callback when user clicks Favorite
+ * - onSave: function(item) => void // callback when user clicks Favorite
  */
 // PUBLIC_INTERFACE
 function ResultsTabs({ recommendations = {}, onSave }) {
@@ -33,39 +33,25 @@ function ResultsTabs({ recommendations = {}, onSave }) {
     }
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-        {/* Render the list of recommendations for the current tab */}
-        <RecommendationList recommendations={items} />
-        {/* Render Favorite buttons to allow user to save items */}
+        {/* Render the list of recommendations for the current tab;
+            pass favorite state and handler for the favorite button */}
         {items.map((item, idx) => {
           const favKey = `${activeTab}:${item.title}`;
           const isFav = favoriteIds.has(favKey);
           return (
-            <button
-              key={`favbtn_${favKey}_${idx}`}
-              className="btn"
-              style={{
-                minWidth: 100,
-                fontSize: 15,
-                background: isFav
-                  ? "var(--base-light)"
-                  : "rgba(255,255,255,0.12)",
-                color: isFav ? "#fff" : "var(--base-light)",
-                border: `1px solid var(--base-light)`,
-                marginTop: 8,
-                marginBottom: 8,
-                marginLeft: 0
-              }}
-              onClick={() => {
+            <RecommendationCard
+              key={`rec_${favKey}_${idx}`}
+              title={item.title}
+              description={item.description}
+              link={item.link}
+              isFavorite={isFav}
+              onFavoriteClick={() => {
                 if (!isFav) {
-                  setFavoriteIds(prev => new Set(prev).add(favKey));
+                  setFavoriteIds((prev) => new Set(prev).add(favKey));
                   if (onSave) onSave({ ...item, category: activeTab });
                 }
               }}
-              disabled={isFav}
-              aria-label={isFav ? "Saved" : "Save as favorite"}
-            >
-              {isFav ? "★ Saved" : "☆ Favorite"} {item.title}
-            </button>
+            />
           );
         })}
       </div>
