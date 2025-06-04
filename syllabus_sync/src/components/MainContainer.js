@@ -9,7 +9,10 @@ import Dashboard from "./Dashboard";
  */
 // PUBLIC_INTERFACE
 function MainContainer() {
+  // Track mode: "upload" (syllabus upload) or "domain" (type subject/domain)
+  const [inputMode, setInputMode] = useState("upload");
   const [uploadedDoc, setUploadedDoc] = useState(null);
+  const [typedDomain, setTypedDomain] = useState("");
   const [parsedResults, setParsedResults] = useState(null);
   const [recommendations, setRecommendations] = useState({
     internships: [],
@@ -50,7 +53,6 @@ function MainContainer() {
 
       // Try to call backend API for syllabus parsing.
       let parseData = null;
-      let parseFetchError = null;
       try {
         const parseRes = await fetch("/api/parse-syllabus", {
           method: "POST",
@@ -61,12 +63,11 @@ function MainContainer() {
         }
         parseData = await parseRes.json();
       } catch (err) {
-        parseFetchError = err;
+        // fallback below
       }
 
-      // If we have no parseData due to fetch failure (network, CORS, 404), provide a fallback for dev/demo/testing
+      // If no parseData, fallback for dev/demo
       if (!parseData) {
-        // You can change this to false if you want to show true error only!
         const USE_DEMO_FALLBACK = true;
 
         if (USE_DEMO_FALLBACK) {
@@ -81,7 +82,7 @@ function MainContainer() {
         }
       }
 
-      // Defensive: ensure required structure (whether from backend or fallback)
+      // Defensive structure check
       if (
         !parseData ||
         !Array.isArray(parseData.subjects) ||
@@ -103,7 +104,6 @@ function MainContainer() {
       setRecommendationError("");
 
       let recData = null;
-      let recFetchError = null;
       try {
         const recRes = await fetch("/api/generate-recommendations", {
           method: "POST",
@@ -120,12 +120,11 @@ function MainContainer() {
         }
         recData = await recRes.json();
       } catch (err) {
-        recFetchError = err;
+        // fallback below
       }
 
-      // Fallback: If recommendations fetch fails (demo/dev mode), produce some mock recs so UI demo/test works
+      // Fallback: If recommendations fetch fails
       if (!recData) {
-        // You can toggle this fallback with the same flag above.
         const USE_DEMO_FALLBACK = true;
         if (USE_DEMO_FALLBACK) {
           recData = {
@@ -147,7 +146,6 @@ function MainContainer() {
         }
       }
 
-      // Defensive: use empty arrays as fallback for keys
       setRecommendations({
         internships: Array.isArray(recData.internships) ? recData.internships : [],
         certifications: Array.isArray(recData.certifications) ? recData.certifications : [],
@@ -167,6 +165,76 @@ function MainContainer() {
     }
   };
 
+  /**
+   * Handler for domain/subject input action:
+   * - Uses POST /api/generate-recommendations-from-domain { domain: <string> }
+   * - Updates UI accordingly
+   */
+  // PUBLIC_INTERFACE
+  const handleDomainSubmit = async (e) => {
+    e.preventDefault();
+    if (!typedDomain || !typedDomain.trim()) {
+      setParseError("Please enter a subject or domain name.");
+      return;
+    }
+    setParsing(false);
+    setParseError("");
+    setParsedResults(null);
+    setRecommendations({ internships: [], certifications: [], projects: [] });
+    setRecommendationError("");
+    setRecommendationLoading(true);
+
+    try {
+      let recData = null;
+      try {
+        const recRes = await fetch("/api/generate-recommendations-from-domain", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ domain: typedDomain.trim() }),
+        });
+        if (!recRes.ok) {
+          throw new Error(`Recommendation API returned status: ${recRes.status}`);
+        }
+        recData = await recRes.json();
+      } catch (error) {
+        // fallback below
+      }
+
+      // Fallback: If backend is not available (demo/dev)
+      if (!recData) {
+        const USE_DEMO_FALLBACK = true;
+        if (USE_DEMO_FALLBACK) {
+          // Use typed domain for display context only (not parsedResults as in upload flow)
+          recData = {
+            internships: [
+              { title: `${typedDomain} Intern at BigTech`, description: `Work as a ${typedDomain} intern at a leading tech company.`, link: "https://example.com/intern" }
+            ],
+            certifications: [
+              { title: `${typedDomain} Certificate (EdX)`, description: `Earn a credential for ${typedDomain}.`, link: "https://edx.org" }
+            ],
+            projects: [
+              { title: `${typedDomain} Capstone Project`, description: `Develop a project that applies ${typedDomain}.`, link: null }
+            ]
+          };
+        } else {
+          throw new Error("Failed to generate recommendations. Please try again.");
+        }
+      }
+
+      setRecommendationLoading(false);
+      setRecommendations({
+        internships: Array.isArray(recData.internships) ? recData.internships : [],
+        certifications: Array.isArray(recData.certifications) ? recData.certifications : [],
+        projects: Array.isArray(recData.projects) ? recData.projects : [],
+      });
+      setParsedResults(null); // Don't show parsed results box in this mode
+      setViewDashboard(false);
+    } catch (err) {
+      setRecommendationLoading(false);
+      setRecommendationError(err.message || "Failed to generate recommendations. Please try again.");
+    }
+  };
+
   // Handler to save a recommendation to user's dashboard
   // PUBLIC_INTERFACE
   const handleSaveItem = (item) => {
@@ -178,6 +246,48 @@ function MainContainer() {
   const handleDashboardToggle = () => {
     setViewDashboard((prev) => !prev);
   };
+
+  // UI: Mode toggle - radio segmented
+  const InputModeToggle = () => (
+    <div style={{
+      display: "flex",
+      gap: "18px",
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: "22px",
+    }}>
+      <label style={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: 7 }}>
+        <input
+          type="radio"
+          name="inputMode"
+          value="upload"
+          checked={inputMode === "upload"}
+          onChange={() => {
+            setInputMode("upload");
+            setParseError("");
+            setParsedResults(null);
+            setRecommendations({ internships: [], certifications: [], projects: [] });
+          }}
+        />
+        Upload Syllabus
+      </label>
+      <label style={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: 7 }}>
+        <input
+          type="radio"
+          name="inputMode"
+          value="domain"
+          checked={inputMode === "domain"}
+          onChange={() => {
+            setInputMode("domain");
+            setParseError("");
+            setParsedResults(null);
+            setRecommendations({ internships: [], certifications: [], projects: [] });
+          }}
+        />
+        Type Domain/Subject
+      </label>
+    </div>
+  );
 
   return (
     <div className="container" style={{ paddingTop: 120, paddingBottom: 48 }}>
@@ -191,15 +301,83 @@ function MainContainer() {
       </div>
       {!viewDashboard && (
         <>
-          {/* Document Upload & Parsing */}
+          {/* Option Toggle: Upload or Type Domain */}
           <section style={{ marginBottom: 36 }}>
-            <DocumentUpload
-              onUpload={handleDocUpload}
-              uploadedDoc={uploadedDoc}
-            />
+            <InputModeToggle />
+
+            {/* Syllabus Upload Mode */}
+            {inputMode === "upload" && (
+              <DocumentUpload
+                onUpload={handleDocUpload}
+                uploadedDoc={uploadedDoc}
+              />
+            )}
+
+            {/* Domain/Subject Name Mode */}
+            {inputMode === "domain" && (
+              <form
+                onSubmit={handleDomainSubmit}
+                style={{
+                  background: "rgba(255,255,255,0.03)",
+                  border: "2px dashed var(--base-light)",
+                  borderRadius: 10,
+                  padding: 24,
+                  textAlign: "center",
+                  marginBottom: 8,
+                }}
+              >
+                <div style={{ fontWeight: 500, fontSize: 18, marginBottom: 12 }}>
+                  Type a Subject, Course or Domain Name
+                </div>
+                <input
+                  type="text"
+                  placeholder="e.g. Computer Science, Marketing, Machine Learning..."
+                  value={typedDomain}
+                  onChange={e => setTypedDomain(e.target.value)}
+                  style={{
+                    padding: "12px 16px",
+                    borderRadius: 7,
+                    fontSize: 16,
+                    border: "1.5px solid var(--border-color)",
+                    marginBottom: 12,
+                    width: "74%",
+                    maxWidth: 440,
+                  }}
+                  disabled={recommendationLoading}
+                  autoFocus
+                  data-testid="domainInput"
+                />
+                <div>
+                  <button
+                    className="btn btn-large"
+                    type="submit"
+                    style={{ marginTop: 4 }}
+                    disabled={!typedDomain.trim() || recommendationLoading}
+                    data-testid="domainSubmit"
+                  >
+                    {recommendationLoading ? "Fetching..." : "Get Recommendations"}
+                  </button>
+                </div>
+                {parseError && (
+                  <div style={{
+                    color: "#ff6e6e",
+                    fontWeight: 500,
+                    marginTop: 11,
+                  }}>{parseError}</div>
+                )}
+                <div style={{
+                  color: "#aaa",
+                  fontSize: 12,
+                  marginTop: 5,
+                  minHeight: 12,
+                }}>
+                  Type the area of your interest (no file upload needed)
+                </div>
+              </form>
+            )}
 
             {/* Loading/Progress States */}
-            {parsing && (
+            {inputMode === "upload" && parsing && (
               <div
                 style={{
                   background: "rgba(79,209,197,0.10)",
@@ -214,7 +392,8 @@ function MainContainer() {
               </div>
             )}
 
-            {parseError && (
+            {/* Only show parseError on upload flow */}
+            {inputMode === "upload" && parseError && (
               <div
                 style={{
                   background: "rgba(255,70,70,0.08)",
@@ -229,8 +408,8 @@ function MainContainer() {
               </div>
             )}
 
-            {/* Show parsed results if available */}
-            {parsedResults && !parsing && (
+            {/* Show parsed results only in upload mode */}
+            {inputMode === "upload" && parsedResults && !parsing && (
               <div style={{
                 background: "rgba(79,209,197,0.10)",
                 borderRadius: 10,
@@ -264,7 +443,7 @@ function MainContainer() {
                   fontWeight: 500,
                 }}
               >
-                Generating personalized recommendations...
+                {inputMode === "upload" ? "Generating personalized recommendations..." : "Fetching recommendations..."}
               </div>
             )}
 
