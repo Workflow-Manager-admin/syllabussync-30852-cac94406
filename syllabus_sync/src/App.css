@@ -44,29 +44,34 @@ body {
 }
 
 .navbar {
-  background-color: var(--base-dark);
-  padding: 16px;
+  background: var(--surface-bg);
+  padding: 16px 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   border-bottom: 1px solid var(--border-color);
   position: fixed;
   top: 0;
+  left: 0;
   width: 100%;
   box-sizing: border-box;
   z-index: 100;
+  box-shadow: 0 1.5px 6px rgba(45,55,72,0.06);
 }
-
 .logo {
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 1.18rem;
+  font-weight: 700;
   display: flex;
   align-items: center;
   gap: 8px;
+  color: var(--primary);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
-
 .logo-symbol {
-  color: var(--base-light);
+  color: var(--secondary);
+  font-weight: 900;
+  font-size: 1.2em;
 }
 
 .container {
