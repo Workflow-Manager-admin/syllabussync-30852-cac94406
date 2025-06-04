@@ -80,6 +80,11 @@ body {
   padding: 0 24px;
   width: 100%;
   box-sizing: border-box;
+  background: none;
+}
+
+section {
+  margin-bottom: 36px;
 }
 
 .hero {
@@ -93,24 +98,26 @@ body {
 }
 
 .subtitle {
-  color: var(--base-light);
+  color: var(--secondary);
   font-weight: 500;
-  font-size: 1.1rem;
+  font-size: 1.08rem;
+  margin-bottom: 7px;
 }
 
 .title {
-  font-size: 3.5rem;
-  font-weight: 600;
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin: 0 0 10px 0;
   line-height: 1.2;
-  margin: 0;
 }
 
 .description {
-  font-size: 1.1rem;
-  line-height: 1.5;
+  font-size: 1.07rem;
   color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0 auto 12px auto;
   max-width: 600px;
-  margin-bottom: 16px;
 }
 
 .btn {
