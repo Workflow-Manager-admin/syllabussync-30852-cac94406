@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Tab from "./Tab";
+import RecommendationList from "./RecommendationList";
 
 /**
  * Tabs to show results: Internships, Certifications, Project Ideas.
@@ -32,62 +33,39 @@ function ResultsTabs({ recommendations = {}, onSave }) {
     }
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        {/* Render the list of recommendations for the current tab */}
+        <RecommendationList recommendations={items} />
+        {/* Render Favorite buttons to allow user to save items */}
         {items.map((item, idx) => {
-          // We can use title + tab as a makeshift unique id since mock data has no ids
           const favKey = `${activeTab}:${item.title}`;
           const isFav = favoriteIds.has(favKey);
           return (
-            <div
-              key={favKey}
+            <button
+              key={`favbtn_${favKey}_${idx}`}
+              className="btn"
               style={{
-                background: "rgba(255,255,255,0.04)",
-                borderRadius: 9,
-                padding: 18,
-                boxShadow: isFav
-                  ? "0 0 0 2px var(--base-light)" : "0 0 0 1px var(--border-color)",
-                display: "flex",
-                alignItems: "flex-start",
-                gap: 18,
-                position: "relative"
+                minWidth: 100,
+                fontSize: 15,
+                background: isFav
+                  ? "var(--base-light)"
+                  : "rgba(255,255,255,0.12)",
+                color: isFav ? "#fff" : "var(--base-light)",
+                border: `1px solid var(--base-light)`,
+                marginTop: 8,
+                marginBottom: 8,
+                marginLeft: 0
               }}
+              onClick={() => {
+                if (!isFav) {
+                  setFavoriteIds(prev => new Set(prev).add(favKey));
+                  if (onSave) onSave({ ...item, category: activeTab });
+                }
+              }}
+              disabled={isFav}
+              aria-label={isFav ? "Saved" : "Save as favorite"}
             >
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 4 }}>
-                  {item.title}
-                </div>
-                <div style={{
-                  color: "var(--text-secondary)",
-                  fontSize: 15,
-                  lineHeight: 1.45,
-                  marginBottom: 5
-                }}>
-                  {item.description}
-                </div>
-              </div>
-              <button
-                className="btn"
-                style={{
-                  minWidth: 100,
-                  fontSize: 15,
-                  background: isFav
-                    ? "var(--base-light)"
-                    : "rgba(255,255,255,0.12)",
-                  color: isFav ? "#fff" : "var(--base-light)",
-                  border: `1px solid var(--base-light)`,
-                  marginLeft: 8
-                }}
-                onClick={() => {
-                  if (!isFav) {
-                    setFavoriteIds(prev => new Set(prev).add(favKey));
-                    if (onSave) onSave({ ...item, category: activeTab });
-                  }
-                }}
-                disabled={isFav}
-                aria-label={isFav ? "Saved" : "Save as favorite"}
-              >
-                {isFav ? "★ Saved" : "☆ Favorite"}
-              </button>
-            </div>
+              {isFav ? "★ Saved" : "☆ Favorite"} {item.title}
+            </button>
           );
         })}
       </div>
