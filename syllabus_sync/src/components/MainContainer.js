@@ -127,20 +127,155 @@ function MainContainer() {
       if (!recData) {
         const USE_DEMO_FALLBACK = true;
         if (USE_DEMO_FALLBACK) {
-          recData = {
-            internships: [
-              { title: "AI Research Intern", description: "Work with ML models in a startup.", link: "https://example.com/intern1" },
-              { title: "Software Developer Intern", description: "Web app and data pipelines.", link: "" }
-            ],
-            certifications: [
-              { title: "AWS Machine Learning", description: "Certify cloud AI skills.", link: "https://aws.amazon.com/certification/" },
-              { title: "Coursera NLP", description: "Intro to NLP specialization.", link: "https://coursera.org/specializations/nlp" }
-            ],
-            projects: [
-              { title: "Course Recommender", description: "Build a recommendation system.", link: null },
-              { title: "Syllabus Analyzer", description: "Extract topics from syllabus files.", link: null }
-            ]
+          // Dynamically generate recommendations based on extracted keywords
+          // Basic mapping: For demo, pair some keyword strings to recs; multiple can match, concat all
+          const keywordRecMap = {
+            "Python": {
+              internships: [
+                { title: "Python Developer Intern", description: "Develop backend APIs and automation using Python.", link: "https://example.com/python-intern" },
+              ],
+              certifications: [
+                { title: "Python for Everybody (Coursera)", description: "Learn Python fundamentals in depth.", link: "https://www.coursera.org/specializations/python" },
+              ],
+              projects: [
+                { title: "Data Scraper", description: "Build a data scraper using Python libraries like BeautifulSoup.", link: null },
+              ]
+            },
+            "Machine Learning": {
+              internships: [
+                { title: "AI/ML Research Intern", description: "Work on ML models with a university lab.", link: "https://example.com/ml-intern" }
+              ],
+              certifications: [
+                { title: "Google ML Crash Course", description: "Foundational ML skills from Google.", link: "https://developers.google.com/machine-learning/crash-course" }
+              ],
+              projects: [
+                { title: "ML Model Comparator", description: "Evaluate different machine learning models on real datasets.", link: null }
+              ]
+            },
+            "NLP": {
+              internships: [
+                { title: "NLP Intern", description: "Apply NLP to build chatbots or sentiment analysis tools.", link: "" }
+              ],
+              certifications: [
+                { title: "Coursera NLP", description: "NLP specialization with real projects.", link: "https://coursera.org/specializations/nlp" }
+              ],
+              projects: [
+                { title: "Resume Analyzer", description: "Analyze and score resumes using natural language techniques.", link: null }
+              ]
+            },
+            "Data Structures": {
+              internships: [
+                { title: "Software Developer Intern", description: "Use data structures in web or systems programming.", link: "" }
+              ],
+              certifications: [
+                { title: "Algorithms & Data Structures", description: "Master classic structures and algorithms.", link: "https://www.edx.org/course/data-structures-fundamentals" }
+              ],
+              projects: [
+                { title: "Graph Path Finder", description: "Visual tool for exploring shortest paths in graphs.", link: null }
+              ]
+            },
+            "Agile": {
+              internships: [
+                { title: "Agile Team Intern", description: "Join an Agile/Scrum team for software delivery.", link: "" }
+              ],
+              certifications: [
+                { title: "Scrum Master Cert (Scrum.org)", description: "Demonstrate agile methodology skills.", link: "https://www.scrum.org/courses/professional-scrum-master-i-certification" }
+              ],
+              projects: [
+                { title: "Project Tracker", description: "Build a simple Agile project tracking app.", link: null }
+              ]
+            },
+            "Big Data": {
+              internships: [
+                { title: "Big Data Intern", description: "Contribute to distributed data processing.", link: "https://www.example.com/big-data-intern" }
+              ],
+              certifications: [
+                { title: "Cloudera Certified Data Analyst", description: "Big data platform skills certification.", link: "https://www.cloudera.com/about/training/certification.html" }
+              ],
+              projects: [
+                { title: "Data Pipeline Demo", description: "Set up sample ETL pipeline using Spark.", link: null }
+              ]
+            },
+            "Software Engineering": {
+              internships: [
+                { title: "Full-stack Web Dev Intern", description: "Experience in real product teams.", link: "" }
+              ],
+              certifications: [
+                { title: "Professional Software Engineer Cert", description: "Formal credential for software devs.", link: "https://certification.comptia.org/software-engineer-certification" }
+              ],
+              projects: [
+                { title: "Bug Tracker", description: "Develop a bug tracking system for small teams.", link: null }
+              ]
+            },
+            "Artificial Intelligence": {
+              internships: [
+                { title: "Artificial Intelligence Intern", description: "Apply AI techniques to solve real-world problems.", link: "" }
+              ],
+              certifications: [
+                { title: "AI for Everyone by DeepLearning.AI", description: "Broad overview of AI for beginners.", link: "https://www.coursera.org/learn/ai-for-everyone" }
+              ],
+              projects: [
+                { title: "AI Chatbot", description: "Develop a simple AI-powered chatbot.", link: null }
+              ]
+            },
+            // Add more mappings as needed for demo
           };
+
+          // Helper function to combine recommendations, avoiding duplicates by title + category
+          function mergeRecs(acc, next, cat) {
+            if (!next) return acc;
+            if (!Array.isArray(next)) return acc;
+            next.forEach(item => {
+              if (!acc.some(s => s.title === item.title && s.description === item.description)) {
+                acc.push(item);
+              }
+            });
+            return acc;
+          }
+
+          // Collect all keywords from subjects, modules, keywords arrays (lowercase for matching)
+          const allTokens = [
+            ...(parseData.subjects || []),
+            ...(parseData.modules || []),
+            ...(parseData.keywords || [])
+          ];
+
+          // Map tokens—case-insensitively—to recs, merging all found
+          let recsMerged = { internships: [], certifications: [], projects: [] };
+          allTokens.forEach(token => {
+            Object.entries(keywordRecMap).forEach(([matchKey, recsObj]) => {
+              // Very simple case-insensitve contains-match
+              if (
+                token &&
+                typeof token === "string" &&
+                token.toLowerCase().includes(matchKey.toLowerCase())
+              ) {
+                recsMerged.internships = mergeRecs(recsMerged.internships, recsObj.internships, "internships");
+                recsMerged.certifications = mergeRecs(recsMerged.certifications, recsObj.certifications, "certifications");
+                recsMerged.projects = mergeRecs(recsMerged.projects, recsObj.projects, "projects");
+              }
+            });
+          });
+
+          // If nothing matches, fallback to most generic demo option
+          if (
+            recsMerged.internships.length === 0 &&
+            recsMerged.certifications.length === 0 &&
+            recsMerged.projects.length === 0
+          ) {
+            recsMerged = {
+              internships: [
+                { title: "General Development Internship", description: "Explore tech internship options in various domains.", link: "https://example.com/intern1" }
+              ],
+              certifications: [
+                { title: "General Technology Certification", description: "Online certifications in technology.", link: "https://coursera.org" }
+              ],
+              projects: [
+                { title: "Personal Organizer App", description: "Build a simple personal task manager app.", link: null }
+              ]
+            };
+          }
+          recData = recsMerged;
         } else {
           throw new Error("Failed to generate recommendations (API unavailable). Please ensure backend is running.");
         }
