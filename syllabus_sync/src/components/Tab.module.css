@@ -1,0 +1,25 @@
+.tab {
+  background: var(--tab-bg);
+  color: var(--primary);
+  border: none;
+  border-radius: 7px 7px 0 0;
+  padding: 7px 24px 10px 24px;
+  margin-bottom: -2px;
+  font-size: 1.07rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.13s, color 0.13s;
+  outline: none;
+  border-bottom: 2.3px solid transparent;
+}
+.tab:hover, .tab:focus {
+  background: #e8f8fa;
+  color: var(--secondary);
+}
+.active {
+  background: var(--tab-active);
+  color: var(--tab-active-text);
+  border-bottom: 2.3px solid var(--tab-active);
+  font-weight: 700;
+  box-shadow: 0 0.5px 2px rgba(79,209,197,0.09);
+}
