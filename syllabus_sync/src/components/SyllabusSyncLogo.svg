@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="SyllabusSync Logo">
+  <!-- Main Circle: Represents connectivity, a modern "cloud"/hub/AI feel -->
+  <circle cx="18" cy="18" r="15" fill="#4FD1C5" opacity="0.16"/>
+  <!-- Book-like Rectangle (left page) -->
+  <rect x="8" y="11" width="7" height="15" rx="2.5" fill="#2D3748"/>
+  <!-- Book-like Rectangle (right page, slightly offset) -->
+  <rect x="17" y="14" width="11" height="12" rx="2.5" fill="#F6AD55"/>
+  <!-- Sync Arrow (subtle, abstract) -->
+  <path d="M17.5 15.7c2.4-1 5.2 0.19 6.2 2.8.86 2.21-0.2 5.1-3.52 5.1l1.18-1.3" stroke="#2D3748" stroke-width="1.3" stroke-linecap="round"/>
+  <!-- S symbol (for SyllabusSync, minimalist) -->
+  <text x="13.2" y="22.6" font-family="Inter, Arial, sans-serif" font-size="8" font-weight="bold" fill="#2D3748" letter-spacing="0.12em">S</text>
+</svg>
