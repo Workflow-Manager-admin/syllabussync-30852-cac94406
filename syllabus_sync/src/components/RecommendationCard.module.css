@@ -1,35 +1,103 @@
-.recommendation-card {
+.recommendationCard {
   background: var(--surface-bg);
   border-radius: 10px;
-  padding: 22px 22px 16px 22px;
-  margin-bottom: 18px;
   box-shadow: var(--card-shadow);
   border: 1.5px solid var(--border-color);
+  margin-bottom: 18px;
+  padding: 18px 20px 18px 20px;
   transition: box-shadow 0.12s, border 0.12s;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 166px;
+  /* Responsive width/height if in a grid */
 }
-.recommendation-card h4 {
+
+.favoriteButton {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  z-index: 2;
+  background: rgba(246, 173, 85, 0.07);
+  color: var(--accent);
+  border: none;
+  outline: none;
+  font-size: 1.48rem;
+  line-height: 1;
+  padding: 6px 11px 7.7px 11px;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(45,55,72,0.06);
+  transition: background 0.16s, color 0.16s, box-shadow 0.14s;
+}
+.favoriteButton:hover,
+.favoriteButton:focus {
+  background: var(--secondary);
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(79,209,197,0.08);
+}
+.favoriteActive {
+  background: var(--secondary);
+  color: #fff;
+  font-weight: 700;
+}
+
+.favoriteButton:disabled,
+.favoriteButton[disabled] {
+  opacity: 0.70;
+  cursor: not-allowed;
+}
+
+.cardContent {
+  padding-right: 32px; /* leave space for button */
+}
+
+.cardContent h4 {
   color: var(--primary);
   font-size: 1.18rem;
   font-weight: 700;
-  margin: 0 0 7px 0;
-  line-height: 1.2;
+  margin: 0 0 8px 0;
+  line-height: 1.18;
+  padding-right: 10px;
+  word-break: break-word;
 }
-.recommendation-card p {
+
+.cardContent p {
   color: var(--text-secondary);
   font-size: 1.02rem;
   margin-top: 3px;
+  margin-bottom: 0;
   line-height: 1.5;
+  word-break: break-word;
 }
-.recommendation-link {
+.recommendationLink {
   color: var(--secondary);
   font-weight: 600;
   text-decoration: underline;
   display: inline-block;
-  margin-top: 10px;
+  margin-top: 11px;
   word-break: break-all;
-  transition: color 0.12s;
+  transition: color 0.13s;
 }
-.recommendation-link:hover, .recommendation-link:focus {
+
+.recommendationLink:hover,
+.recommendationLink:focus {
   color: var(--accent);
   outline: none;
+}
+
+@media (max-width: 540px) {
+  .recommendationCard {
+    padding: 13px 9px 13px 11px;
+    min-height: 110px;
+  }
+  .favoriteButton {
+    top: 8px;
+    right: 8px;
+    font-size: 1.22rem;
+    padding: 4px 7px;
+  }
+  .cardContent {
+    padding-right: 10px;
+  }
 }
