@@ -60,36 +60,42 @@ function MainContainer() {
 
       setParsedResults(parsed);
 
-      // Simulate recommendations using the parsed data as reference
+      // Simulate recommendations using the parsed data as reference, now each has a "link"
       setRecommendations({
         internships: [
           {
             title: "AI Research Intern",
             description: "Work with a university lab on NLP tasks.",
+            link: "https://example.com/internship/ai-research"
           },
           {
             title: "Web Development Intern",
             description: "Contribute to React-based web apps.",
+            link: "https://example.com/internship/web-development"
           },
         ],
         certifications: [
           {
             title: "AWS Certified Cloud Practitioner",
             description: "Verify your cloud fundamentals knowledge.",
+            link: "https://aws.amazon.com/certification/certified-cloud-practitioner/"
           },
           {
             title: "Google Data Analytics",
             description: "Gain hands-on data analysis skills.",
+            link: "https://www.coursera.org/professional-certificates/google-data-analytics"
           },
         ],
         projects: [
           {
             title: "Personal Portfolio Website",
             description: "Showcase your skills with a modern web portfolio.",
+            link: "https://github.com/topics/portfolio-website"
           },
           {
             title: "Chatbot for Student Queries",
             description: "Build an AI bot for campus FAQs.",
+            link: "https://github.com/topics/chatbot"
           },
         ],
       });
